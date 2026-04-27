@@ -31,6 +31,7 @@ def preprocess(image):
     image = image.convert('L')                                      # Convert to grayscale
     image = image.resize((512, 512))                                # Resize to 512x512
     tensor = torch.tensor(np.array(image), dtype=torch.float32)     # Convert to tensor
+    tensor = tensor / 255.0
     tensor = tensor.unsqueeze(0).unsqueeze(0)                       # add batch and channel dimensions
     return tensor
 
