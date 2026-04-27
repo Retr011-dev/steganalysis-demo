@@ -50,6 +50,7 @@ def preprocess(image):
 def predict(model, tensor):
     with torch.no_grad():
         output = model(tensor)
+        elapsed = time.perf_counter() - t0
         probabilities = F.softmax(output, dim=1)
         cover_prob = probabilities[0][0].item()
         stego_prob = probabilities[0][1].item()
