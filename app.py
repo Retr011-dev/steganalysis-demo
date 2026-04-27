@@ -53,7 +53,7 @@ def predict(model, tensor):
         probabilities = F.softmax(output, dim=1)
         cover_prob = probabilities[0][0].item()
         stego_prob = probabilities[0][1].item()
-    return cover_prob, stego_prob
+    return cover_prob, stego_prob, elapsed
 
 with st.sidebar:
     st.header("Model")
