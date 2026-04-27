@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 import gdown
 import os
+import time
 from model import XuNetSteganalysis
 
 MODELS = {
@@ -49,6 +50,7 @@ def preprocess(image):
 
 def predict(model, tensor):
     with torch.no_grad():
+        t0 = time.perf_counter()
         output = model(tensor)
         elapsed = time.perf_counter() - t0
         probabilities = F.softmax(output, dim=1)
