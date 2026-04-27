@@ -46,7 +46,7 @@ st.title("CNN-Based Steganalysis Demo")
 
 selected_model = st.selectbox("Select a model:", list(MODELS.keys()))
 
-uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg", "pgm"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
