@@ -8,9 +8,21 @@ import os
 from model import XuNetSteganalysis
 
 MODELS = {
-    "Best 1v3 - HILL trained": "1KWCq9mjsrpqbiPLYMf-tc3J-a_GiwG9P",
-    "Best 2v2 - HILL+WOW trained": "13XHfWIsFpDPPOGzJRFIEUQFG9k6kx5k9",
-    "Best 3v1 - S-UNIWARD+HILL+WOW trained": "1BfuemEU6FQV151nFVbg_bjSuYjr4YW3B"
+    "Best 1v3 - HILL trained": {
+        "id": "1KWCq9mjsrpqbiPLYMf-tc3J-a_GiwG9P",
+        "desc": "Trained on HILL steganography. Specialised for detecting one algorithm.",
+        "algorithms": ["HILL"],
+    },
+    "Best 2v2 - HILL+WOW trained": {
+        "id": "13XHfWIsFpDPPOGzJRFIEUQFG9k6kx5k9",
+        "desc": "Trained on HILL and WOW. Balanced multi-algorithm detection.",
+        "algorithms": ["HILL", "WOW"],
+    },
+    "Best 3v1 - S-UNIWARD+HILL+WOW trained": {
+        "id": "1BfuemEU6FQV151nFVbg_bjSuYjr4YW3B",
+        "desc": "Trained on S-UNIWARD, HILL, and WOW. Broadest coverage.",
+        "algorithms": ["S-UNIWARD", "HILL", "WOW"],
+    },
 }
 
 @st.cache_resource
@@ -43,28 +55,62 @@ def predict(model, tensor):
         stego_prob = probabilities[0][1].item()
     return cover_prob, stego_prob
 
+with st.sidebar:
+    st.header("Model")
+    selected_model = st.selectbox("Select a model:", list(MODELS.keys()), label_visibility="collapsed")
+    info = MODELS[selected_model]
+    st.caption(info["desc"])
+    st.write("**Detects:**", " · ".join(info["algorithms"]))
+
+    st.divider()
+    st.header("About")
+    st.write(
+        "This demo uses the **XuNet** CNN architecture (Xu et al., 2016) "
+        "to classify whether an image contains hidden data embedded via spatial-domain steganography."
+    )
+    st.write("Upload a grayscale or colour JPEG/PNG and the model will output a cover vs. stego probability.")
+
 st.title("CNN-Based Steganalysis Demo")
+st.caption("Detect hidden data in images using deep learning")
 
-selected_model = st.selectbox("Select a model:", list(MODELS.keys()))
-
-uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg", "pgm"])
+uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    original_size = uploaded_file.size
 
-    model = load_model(selected_model)
-    tensor = preprocess(image)
-    cover_prob, stego_prob = predict(model, tensor)
+    col_img, col_results = st.columns([1, 1], gap="large")
 
-    st.subheader("Prediction")
-    if stego_prob > 0.5:
-        st.error(f"Stego Image Detected! - Confidence: {stego_prob:.1%}")
-    else:
-        st.success(f"Cover Image - Confidence: {cover_prob:.1%}")
+    with col_img:
+        st.subheader("Uploaded Image")
+        st.image(image, use_column_width=True)
+        with st.expander("Image details"):
+            w, h = image.size
+            st.write(f"**Filename:** {uploaded_file.name}")
+            st.write(f"**Dimensions:** {w} × {h} px")
+            st.write(f"**Colour mode:** {image.mode}")
+            st.write(f"**File size:** {original_size / 1024:.1f} KB")
 
-    st.subheader("Confidence")
-    st.write("Cover Probability")
-    st.progress(cover_prob)
-    st.write("Stego Probability")
-    st.progress(stego_prob)
+    with col_results:
+        st.subheader("Analysis")
+
+        with st.spinner("Running inference…"):
+            model = load_model(selected_model)
+            tensor = preprocess(image)
+            cover_prob, stego_prob, elapsed_s = predict(model, tensor)
+
+        if stego_prob > 0.5:
+            st.error(f"Stego image detected — {stego_prob:.1%} confidence", icon="🚨")
+        else:
+            st.success(f"Cover image (clean) — {cover_prob:.1%} confidence", icon="✅")
+
+        st.divider()
+
+        m1, m2 = st.columns(2)
+        m1.metric("Cover probability", f"{cover_prob:.1%}")
+        m2.metric("Stego probability", f"{stego_prob:.1%}")
+
+        st.progress(cover_prob, text="Cover")
+        st.progress(stego_prob, text="Stego")
+
+        st.caption(f"Inference time: {elapsed_s * 1000:.0f} ms · Model: {selected_model}")
