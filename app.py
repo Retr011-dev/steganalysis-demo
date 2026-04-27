@@ -68,7 +68,7 @@ with st.sidebar:
         "This demo uses the **XuNet** CNN architecture (Xu et al., 2016) "
         "to classify whether an image contains hidden data embedded via spatial-domain steganography."
     )
-    st.write("Upload a grayscale or colour JPEG/PNG and the model will output a cover vs. stego probability.")
+    st.write("Upload a grayscale or colour JPEG/PNG/PGM and the model will output a cover vs. stego probability.")
 
 st.title("CNN-Based Steganalysis Demo")
 st.caption("Detect hidden data in images using deep learning")
