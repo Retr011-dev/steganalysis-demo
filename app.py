@@ -28,7 +28,7 @@ MODELS = {
 
 @st.cache_resource
 def load_model(model_name):
-    file_id = MODELS[model_name]
+    file_id = MODELS[model_name]["id"]
     output_path = f"model_{list(MODELS.keys()).index(model_name)}.pth"
 
     if not os.path.exists(output_path):
